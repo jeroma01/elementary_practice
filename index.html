@@ -178,12 +178,11 @@
 
     <!-- 底部版權 -->
     <footer class="text-center text-slate-400 text-xs py-8">
-        <p>Made for Damon • V3.0</p>
+        <p>Made for Damon • V3.1</p>
     </footer>
 
     <script>
-        // === 教材資料庫 (V3.0: 名字更新 + 圖片輔助) ===
-        // 我們使用 Emoji 作為 2D 圖片，因為它們在所有裝置上都相容且可愛
+        // === 教材資料庫 (V3.1: Phonics 圖片更新為雙圖示) ===
         const lessonData = [
             {
                 category: "Greeting (問候)",
@@ -247,14 +246,15 @@
                 icon: "fa-shapes",
                 color: "border-l-8 border-purple-400",
                 sentences: [
-                    { en: "A, a, apple, ant", zh: "Aa (蘋果, 螞蟻)", img: "🍎" },
-                    { en: "B, b, ball, bear", zh: "Bb (球, 熊)", img: "🐻" },
-                    { en: "C, c, cat, car", zh: "Cc (貓, 車子)", img: "🐱" },
-                    { en: "D, d, dog, duck", zh: "Dd (狗, 鴨子)", img: "🐶" },
-                    { en: "E, e, egg, elephant", zh: "Ee (蛋, 大象)", img: "🐘" },
-                    { en: "F, f, fish, fan", zh: "Ff (魚, 風扇)", img: "🐟" },
-                    { en: "G, g, goat, girl", zh: "Gg (山羊, 女孩)", img: "🐐" },
-                    { en: "H, h, hat, hot", zh: "Hh (帽子, 熱)", img: "🎩" }
+                    // 這裡更新為雙圖示，幫助學習
+                    { en: "A, a, apple, ant", zh: "Aa (蘋果, 螞蟻)", img: "🍎 🐜" },
+                    { en: "B, b, ball, bear", zh: "Bb (球, 熊)", img: "🏀 🐻" },
+                    { en: "C, c, cat, car", zh: "Cc (貓, 車子)", img: "🐱 🚗" },
+                    { en: "D, d, dog, duck", zh: "Dd (狗, 鴨子)", img: "🐶 🦆" },
+                    { en: "E, e, egg, elephant", zh: "Ee (蛋, 大象)", img: "🥚 🐘" },
+                    { en: "F, f, fish, fan", zh: "Ff (魚, 風扇)", img: "🐟 🪭" },
+                    { en: "G, g, goat, girl", zh: "Gg (山羊, 女孩)", img: "🐐 👧" },
+                    { en: "H, h, hat, hot", zh: "Hh (帽子, 熱)", img: "🎩 🔥" }
                 ]
             },
             {
@@ -379,8 +379,8 @@
                     const globalIndex = sentencesToPlay.length;
                     sentencesToPlay.push({ text: item.en, id: `card-${globalIndex}` }); 
 
-                    // 判斷是否有圖片
-                    const imgHtml = item.img ? `<div class="sticker-img mr-3 w-12 text-center transform group-hover:scale-110 transition">${item.img}</div>` : '';
+                    // 判斷是否有圖片，並允許寬度自動適應雙圖示 (使用 min-w-[3rem] 讓單圖示置中，雙圖示展開)
+                    const imgHtml = item.img ? `<div class="sticker-img mr-3 min-w-[3rem] text-center transform group-hover:scale-110 transition">${item.img}</div>` : '';
 
                     sentencesHtml += `
                         <div id="card-${globalIndex}" 
