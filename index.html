@@ -3,244 +3,399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小學二年級英文聽力複習 (Grade 2 English Review)</title>
-    <!-- 使用 Tailwind CSS 進行快速排版 -->
+    <title>Grade 2 English Review - Damon's Edition</title>
+    <!-- 使用 Tailwind CSS 進行排版 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入圖標庫 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts 字型 -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <!-- 引入 confetti 特效 (慶祝用紙花) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f0f9ff; /* 淺藍色背景 */
+            background-color: #ecfeff; /* 更清爽的藍綠色背景 */
+            background-image: radial-gradient(#cffafe 2px, transparent 2px);
+            background-size: 30px 30px;
         }
         .en-text {
-            font-family: 'Fredoka', sans-serif; /* 圓潤可愛的英文字體 */
+            font-family: 'Fredoka', sans-serif;
         }
-        /* 播放時的高亮效果 */
         .playing-highlight {
-            background-color: #fef08a !important; /* 黃色高亮 */
-            border-color: #eab308 !important;
+            background-color: #fef9c3 !important; /* 柔和黃 */
+            border-color: #facc15 !important;
             transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .card-hover {
+            transition: all 0.2s ease;
         }
         .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
         }
-        /* 自定義捲軸 */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* 頁籤切換動畫 */
+        .tab-active {
+            background-color: #ffffff;
+            color: #0ea5e9;
+            font-weight: bold;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; 
+        .tab-inactive {
+            background-color: rgba(255, 255, 255, 0.4);
+            color: #475569;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #93c5fd; 
-            border-radius: 4px;
+        
+        /* 測驗模式按鈕樣式 */
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #60a5fa; 
+        .quiz-option:hover {
+            transform: scale(1.02);
+            background-color: #eff6ff;
+        }
+        .quiz-option.correct {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+            color: #14532d;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #7f1d1d;
+            opacity: 0.7;
+        }
+        /* 貼紙效果 */
+        .sticker-img {
+            filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.1));
+            font-size: 2.5rem;
+            line-height: 1;
         }
     </style>
 </head>
-<body class="min-h-screen pb-20">
+<body class="min-h-screen pb-24 select-none">
 
-    <!-- 頂部標題區 -->
-    <header class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold flex items-center gap-2">
-                    <i class="fas fa-graduation-cap"></i> Grade 2 English
-                </h1>
-                <p class="text-blue-100 text-sm">小學二年級英文複習</p>
+    <!-- 頂部導航 -->
+    <header class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold flex items-center gap-2">
+                        <i class="fas fa-graduation-cap"></i> Damon's English
+                    </h1>
+                </div>
+                <!-- 語速與分數區 -->
+                <div class="flex items-center gap-3">
+                    <!-- 語速控制器 -->
+                    <div class="bg-white/20 rounded-full px-3 py-1 flex items-center gap-2 text-sm backdrop-blur-sm border border-white/30">
+                        <i class="fas fa-tachometer-alt text-cyan-100"></i>
+                        <select id="speed-select" onchange="updateSpeed()" class="bg-transparent text-white font-bold outline-none cursor-pointer appearance-none">
+                            <option value="1.0" class="text-gray-800">1.0x (Normal)</option>
+                            <option value="0.75" class="text-gray-800" selected>0.75x (Slow)</option>
+                            <option value="0.5" class="text-gray-800">0.5x (Very Slow)</option>
+                        </select>
+                        <i class="fas fa-chevron-down text-xs text-cyan-100"></i>
+                    </div>
+
+                    <!-- 分數顯示 (僅在測驗模式顯示) -->
+                    <div id="score-board" class="hidden bg-yellow-400/90 text-yellow-900 px-3 py-1 rounded-full shadow-sm">
+                        <span class="font-bold text-sm"><i class="fas fa-star"></i> <span id="current-score">0</span></span>
+                    </div>
+                </div>
             </div>
-            
-            <!-- 全局控制按鈕 -->
-            <div class="flex gap-2">
-                <button id="stopBtn" onclick="stopAudio()" class="hidden bg-red-400 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full shadow transition flex items-center gap-2 text-sm">
-                    <i class="fas fa-stop"></i> 停止
+
+            <!-- 模式切換 Tabs -->
+            <div class="flex gap-2 p-1 bg-black/10 rounded-xl backdrop-blur-sm">
+                <button onclick="switchMode('practice')" id="tab-practice" class="tab-active flex-1 py-2 rounded-lg text-center transition text-sm md:text-base">
+                    <i class="fas fa-book-open mr-2"></i>練習模式
                 </button>
-                <button id="playAllBtn" onclick="playAll()" class="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold py-2 px-4 rounded-full shadow transition flex items-center gap-2 text-sm md:text-base animate-pulse-slow">
-                    <i class="fas fa-play-circle text-lg"></i> 全部播放
+                <button onclick="switchMode('quiz')" id="tab-quiz" class="tab-inactive flex-1 py-2 rounded-lg text-center transition text-sm md:text-base">
+                    <i class="fas fa-gamepad mr-2"></i>測驗模式
                 </button>
             </div>
         </div>
     </header>
 
     <!-- 主要內容區 -->
-    <main class="max-w-4xl mx-auto px-4 py-6 space-y-8" id="content-container">
-        <!-- 內容將由 JavaScript 動態生成 -->
+    <main class="max-w-4xl mx-auto px-4 py-6">
+        
+        <!-- 1. 練習模式界面 -->
+        <div id="view-practice" class="space-y-6">
+            <!-- 全局播放控制 (浮動按鈕) -->
+            <div class="flex justify-center md:justify-end mb-4 sticky top-40 z-40 pointer-events-none">
+                <div class="pointer-events-auto bg-white/90 backdrop-blur-md shadow-lg rounded-full p-1.5 border border-white/50 flex gap-2">
+                    <button id="stopBtn" onclick="stopAudio()" class="hidden bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full shadow transition flex items-center gap-2">
+                        <i class="fas fa-stop"></i> Stop
+                    </button>
+                    <button id="playAllBtn" onclick="playAll()" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-2 px-6 rounded-full shadow transition flex items-center gap-2 animate-pulse-slow">
+                        <i class="fas fa-play-circle text-xl"></i> Play All
+                    </button>
+                </div>
+            </div>
+            
+            <div id="content-list" class="space-y-8">
+                <!-- 課程內容由 JS 生成 -->
+            </div>
+        </div>
+
+        <!-- 2. 測驗模式界面 -->
+        <div id="view-quiz" class="hidden max-w-2xl mx-auto mt-8">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-white ring-4 ring-cyan-100">
+                <!-- 測驗狀態欄 -->
+                <div class="bg-gradient-to-b from-cyan-50 to-white p-8 text-center border-b border-cyan-100">
+                    <div class="relative inline-block group">
+                        <div class="absolute inset-0 bg-cyan-400 rounded-full blur opacity-20 group-hover:opacity-40 transition"></div>
+                        <div class="relative inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-cyan-100 to-blue-50 text-cyan-600 mb-4 shadow-lg cursor-pointer hover:scale-105 transition border-4 border-white" onclick="playQuizAudio()">
+                            <i id="quiz-speaker-icon" class="fas fa-volume-up text-4xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-slate-500 text-sm font-bold mb-1 tracking-wide uppercase">Listen & Choose</p>
+                    <p class="text-slate-800 font-black text-xl">點擊喇叭聽題目，選出正確答案</p>
+                </div>
+
+                <!-- 選項區 -->
+                <div id="quiz-options" class="p-6 space-y-4 bg-slate-50 min-h-[300px] flex flex-col justify-center">
+                    <!-- 選項由 JS 生成 -->
+                    <div class="text-center py-10">
+                        <button onclick="startQuiz()" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-4 px-10 rounded-2xl shadow-lg transform transition hover:scale-105 text-lg">
+                            <i class="fas fa-rocket mr-2"></i> 開始測驗 (Start Quiz)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 底部反饋 -->
+                <div id="quiz-feedback" class="h-14 bg-white border-t border-slate-100 flex items-center justify-center text-sm font-bold text-slate-400">
+                    <i class="fas fa-info-circle mr-2"></i> 準備好就按開始！
+                </div>
+            </div>
+        </div>
+
     </main>
 
-    <!-- 底部版權/說明 -->
-    <footer class="text-center text-gray-500 text-sm py-6">
-        <p>點擊喇叭圖示或句子即可發音 • 適合家長與孩子共學</p>
+    <!-- 底部版權 -->
+    <footer class="text-center text-slate-400 text-xs py-8">
+        <p>Made for Damon • V3.0</p>
     </footer>
 
     <script>
-        // === 教材資料庫 ===
+        // === 教材資料庫 (V3.0: 名字更新 + 圖片輔助) ===
+        // 我們使用 Emoji 作為 2D 圖片，因為它們在所有裝置上都相容且可愛
         const lessonData = [
             {
                 category: "Greeting (問候)",
                 icon: "fa-hand-sparkles",
-                color: "border-l-4 border-yellow-400",
+                color: "border-l-8 border-yellow-400",
                 sentences: [
-                    { en: "Hi! Good morning.", zh: "嗨！早安。" },
-                    { en: "Hello! Good afternoon.", zh: "哈囉！午安。" }
+                    { en: "Hi! Good morning.", zh: "嗨！早安。", img: "☀️" },
+                    { en: "Hello! Good afternoon.", zh: "哈囉！午安。", img: "👋" }
                 ]
             },
             {
                 category: "1. Self Introduction (自我介紹)",
-                subtitle: "Q: What's your name?",
-                icon: "fa-user-circle",
-                color: "border-l-4 border-blue-400",
+                subtitle: "Hello, Damon!",
+                icon: "fa-id-card",
+                color: "border-l-8 border-blue-400",
                 sentences: [
-                    { en: "My name is Tom.", zh: "我的名字是 Damon。" },
-                    { en: "I am Mary.", zh: "我是 Damon。" },
-                    { en: "I'm Eric.", zh: "我是 Damon。" }
+                    { en: "My name is Damon.", zh: "我的名字是 Damon。", img: "👦" },
+                    { en: "I am Damon.", zh: "我是 Damon。", img: "🙋‍♂️" },
+                    { en: "I'm Damon.", zh: "我是 Damon。", img: "✨" }
                 ]
             },
             {
                 category: "2. Age (年齡)",
-                subtitle: "Q: How old are you?",
+                subtitle: "How old are you?",
                 icon: "fa-birthday-cake",
-                color: "border-l-4 border-pink-400",
+                color: "border-l-8 border-pink-400",
                 sentences: [
-                    { en: "I'm seven years old.", zh: "我七歲。" },
-                    { en: "I'm eight years old.", zh: "我八歲。" }
+                    { en: "I'm seven years old.", zh: "我七歲。", img: "7️⃣" },
+                    { en: "I'm eight years old.", zh: "我八歲。", img: "8️⃣" }
                 ]
             },
             {
                 category: "3. Feelings (心情)",
-                subtitle: "Q: How are you today?",
+                subtitle: "How are you today?",
                 icon: "fa-smile-beam",
-                color: "border-l-4 border-green-400",
+                color: "border-l-8 border-green-400",
                 sentences: [
-                    { en: "I'm great.", zh: "我很棒。" },
-                    { en: "I'm good.", zh: "我很好。" },
-                    { en: "I'm fine.", zh: "我不錯。" },
-                    { en: "I'm happy.", zh: "我很開心。" }
+                    { en: "I'm great.", zh: "我很棒。", img: "🤩" },
+                    { en: "I'm good.", zh: "我很好。", img: "👍" },
+                    { en: "I'm fine.", zh: "我不錯。", img: "👌" },
+                    { en: "I'm happy.", zh: "我很開心。", img: "🥰" }
                 ]
             },
             {
                 category: "4. Weather (天氣)",
-                subtitle: "Q: How's the weather?",
+                subtitle: "How's the weather?",
                 icon: "fa-cloud-sun",
-                color: "border-l-4 border-orange-400",
+                color: "border-l-8 border-orange-400",
                 sentences: [
-                    { en: "It's sunny.", zh: "是晴天。" },
-                    { en: "It's cloudy.", zh: "是陰天。" },
-                    { en: "It's rainy.", zh: "是雨天。" },
-                    { en: "It's windy.", zh: "風很大。" },
-                    { en: "It's snowy.", zh: "下雪了。" },
-                    { en: "It's stormy.", zh: "有暴風雨。" }
+                    { en: "It's sunny.", zh: "是晴天。", img: "☀️" },
+                    { en: "It's cloudy.", zh: "是陰天。", img: "☁️" },
+                    { en: "It's rainy.", zh: "是雨天。", img: "☔" },
+                    { en: "It's windy.", zh: "風很大。", img: "🍃" },
+                    { en: "It's snowy.", zh: "下雪了。", img: "⛄" },
+                    { en: "It's stormy.", zh: "有暴風雨。", img: "⛈️" }
                 ]
             },
             {
-                category: "5. Phonics (字母發音)",
-                subtitle: "Listen and Repeat (聽並跟讀)",
+                category: "5. Phonics (發音)",
+                subtitle: "Listen & Repeat",
                 icon: "fa-shapes",
-                color: "border-l-4 border-purple-400",
+                color: "border-l-8 border-purple-400",
                 sentences: [
-                    { en: "A, a, apple, ant", zh: "Aa (蘋果, 螞蟻)" },
-                    { en: "B, b, ball, bear", zh: "Bb (球, 熊)" },
-                    { en: "C, c, cat, car", zh: "Cc (貓, 車子)" },
-                    { en: "D, d, dog, duck", zh: "Dd (狗, 鴨子)" },
-                    { en: "E, e, egg, elephant", zh: "Ee (蛋, 大象)" },
-                    { en: "F, f, fish, fan", zh: "Ff (魚, 風扇)" },
-                    { en: "G, g, goat, girl", zh: "Gg (山羊, 女孩)" },
-                    { en: "H, h, hat, hot", zh: "Hh (帽子, 熱)" }
+                    { en: "A, a, apple, ant", zh: "Aa (蘋果, 螞蟻)", img: "🍎" },
+                    { en: "B, b, ball, bear", zh: "Bb (球, 熊)", img: "🐻" },
+                    { en: "C, c, cat, car", zh: "Cc (貓, 車子)", img: "🐱" },
+                    { en: "D, d, dog, duck", zh: "Dd (狗, 鴨子)", img: "🐶" },
+                    { en: "E, e, egg, elephant", zh: "Ee (蛋, 大象)", img: "🐘" },
+                    { en: "F, f, fish, fan", zh: "Ff (魚, 風扇)", img: "🐟" },
+                    { en: "G, g, goat, girl", zh: "Gg (山羊, 女孩)", img: "🐐" },
+                    { en: "H, h, hat, hot", zh: "Hh (帽子, 熱)", img: "🎩" }
                 ]
             },
             {
-                category: "6. Singular Nouns (單數句型)",
-                subtitle: "Q: What is this? / What is that?",
+                category: "6. Singular (單數)",
+                subtitle: "This is / That is",
                 icon: "fa-cube",
-                color: "border-l-4 border-teal-400",
+                color: "border-l-8 border-teal-400",
                 sentences: [
-                    { en: "This is an ant.", zh: "這是一隻螞蟻。" },
-                    { en: "That is an ant.", zh: "那是一隻螞蟻。" },
-                    { en: "This is a cat.", zh: "這是一隻貓。" },
-                    { en: "That is a cat.", zh: "那是一隻貓。" },
-                    { en: "This is a bear.", zh: "這是一隻熊。" },
-                    { en: "That is a bear.", zh: "那是一隻熊。" },
-                    { en: "This is an insect.", zh: "這是一隻昆蟲。" },
-                    { en: "That is an insect.", zh: "那是一隻昆蟲。" },
-                    { en: "This is an apple.", zh: "這是一顆蘋果。" },
-                    { en: "That is an apple.", zh: "那是一顆蘋果。" },
-                    { en: "This is a monkey.", zh: "這是一隻猴子。" },
-                    { en: "That is a monkey.", zh: "那是一隻猴子。" }
+                    { en: "This is an ant.", zh: "這是一隻螞蟻。", img: "🐜" },
+                    { en: "That is an ant.", zh: "那是一隻螞蟻。", img: "🐜" },
+                    { en: "This is a cat.", zh: "這是一隻貓。", img: "🐱" },
+                    { en: "That is a cat.", zh: "那是一隻貓。", img: "🐈" },
+                    { en: "This is a bear.", zh: "這是一隻熊。", img: "🐻" },
+                    { en: "That is a bear.", zh: "那是一隻熊。", img: "🧸" },
+                    { en: "This is an insect.", zh: "這是一隻昆蟲。", img: "🪲" },
+                    { en: "That is an insect.", zh: "那是一隻昆蟲。", img: "🐞" },
+                    { en: "This is an apple.", zh: "這是一顆蘋果。", img: "🍎" },
+                    { en: "That is an apple.", zh: "那是一顆蘋果。", img: "🍏" },
+                    { en: "This is a monkey.", zh: "這是一隻猴子。", img: "🐵" },
+                    { en: "That is a monkey.", zh: "那是一隻猴子。", img: "🐒" }
                 ]
             },
             {
-                category: "7. Plural Nouns (複數句型)",
-                subtitle: "Q: What are these? / What are those?",
+                category: "7. Plural (複數)",
+                subtitle: "These are / Those are",
                 icon: "fa-cubes",
-                color: "border-l-4 border-red-400",
+                color: "border-l-8 border-red-400",
                 sentences: [
-                    { en: "These are apples.", zh: "這些是蘋果。" },
-                    { en: "Those are apples.", zh: "那些是蘋果。" },
-                    { en: "These are balls.", zh: "這些是球。" },
-                    { en: "Those are balls.", zh: "那些是球。" },
-                    { en: "These are cars.", zh: "這些是車子。" },
-                    { en: "Those are cars.", zh: "那些是車子。" },
-                    { en: "These are hats.", zh: "這些是帽子。" },
-                    { en: "Those are hats.", zh: "那些是帽子。" },
-                    { en: "These are jackets.", zh: "這些是夾克。" },
-                    { en: "Those are jackets.", zh: "那些是夾克。" },
-                    { en: "These are lions.", zh: "這些是獅子。" },
-                    { en: "Those are lions.", zh: "那些是獅子。" }
+                    { en: "These are apples.", zh: "這些是蘋果。", img: "🍎" },
+                    { en: "Those are apples.", zh: "那些是蘋果。", img: "🍏" },
+                    { en: "These are balls.", zh: "這些是球。", img: "⚽" },
+                    { en: "Those are balls.", zh: "那些是球。", img: "🏀" },
+                    { en: "These are cars.", zh: "這些是車子。", img: "🚗" },
+                    { en: "Those are cars.", zh: "那些是車子。", img: "🚕" },
+                    { en: "These are hats.", zh: "這些是帽子。", img: "🧢" },
+                    { en: "Those are hats.", zh: "那些是帽子。", img: "👒" },
+                    { en: "These are jackets.", zh: "這些是夾克。", img: "🧥" },
+                    { en: "Those are jackets.", zh: "那些是夾克。", img: "🧥" },
+                    { en: "These are lions.", zh: "這些是獅子。", img: "🦁" },
+                    { en: "Those are lions.", zh: "那些是獅子。", img: "🦁" }
+                ]
+            },
+            {
+                category: "8. Colors & Clothes (顏色/衣物)",
+                subtitle: "What color is it?",
+                icon: "fa-tshirt",
+                color: "border-l-8 border-indigo-400",
+                sentences: [
+                    { en: "It's a blue T-shirt.", zh: "是一件藍色 T 恤。", img: "👕" },
+                    { en: "It's a green skirt.", zh: "是一件綠色裙子。", img: "👗" }, // 綠色裙子無精確 Emoji，用通用裙子
+                    { en: "It's a yellow cap.", zh: "是一頂黃色帽子。", img: "🧢" },
+                    { en: "It's a pink dress.", zh: "是一件粉色洋裝。", img: "👚" },
+                    { en: "It's a red jacket.", zh: "是一件紅色外套。", img: "🧥" }
+                ]
+            },
+            {
+                category: "9. Fruits (水果喜好)",
+                subtitle: "Which fruit do you like?",
+                icon: "fa-lemon",
+                color: "border-l-8 border-lime-500",
+                sentences: [
+                    { en: "I like apples.", zh: "我喜歡蘋果。", img: "🍎" },
+                    { en: "I like bananas.", zh: "我喜歡香蕉。", img: "🍌" },
+                    { en: "I like mangos.", zh: "我喜歡芒果。", img: "🥭" },
+                    { en: "I like papayas.", zh: "我喜歡木瓜。", img: "🍈" },
+                    { en: "I like guavas.", zh: "我喜歡芭樂。", img: "🍐" }
+                ]
+            },
+            {
+                category: "10. Math (數學)",
+                subtitle: "Read the problem",
+                icon: "fa-calculator",
+                color: "border-l-8 border-gray-500",
+                sentences: [
+                    { en: "Thirty-five plus twenty equals fifty-five.", zh: "35 + 20 = 55", img: "➕" },
+                    { en: "One hundred minus fifteen equals eighty-five.", zh: "100 - 15 = 85", img: "➖" }
                 ]
             }
         ];
 
-        // === 應用程式邏輯 ===
-        const container = document.getElementById('content-container');
+        // 扁平化所有句子
+        let allSentencesFlat = [];
+        lessonData.forEach(section => {
+            section.sentences.forEach(s => allSentencesFlat.push(s));
+        });
+
+        // === 核心功能變數 ===
         const synth = window.speechSynthesis;
         let sentencesToPlay = [];
         let isPlayingAll = false;
         let currentUtterance = null;
+        let currentQuizItem = null;
+        let score = 0;
+        let isQuizMode = false;
+        let speechRate = 0.75; // 預設慢速
 
-        // 1. 初始化頁面
+        // === 1. 初始化頁面 ===
         function initPage() {
+            const container = document.getElementById('content-list');
+            
             lessonData.forEach((section, sIndex) => {
                 const sectionEl = document.createElement('section');
-                sectionEl.className = "bg-white rounded-xl shadow-md overflow-hidden";
+                sectionEl.className = "bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition duration-300";
                 
                 // 區塊標題
                 let headerHtml = `
-                    <div class="p-4 bg-gray-50 border-b flex items-start gap-3">
-                        <div class="mt-1 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <div class="p-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white shadow-sm text-${section.color.split('-')[3]}-500 border border-slate-100 flex items-center justify-center shrink-0 text-xl">
                             <i class="fas ${section.icon}"></i>
                         </div>
                         <div>
-                            <h2 class="text-lg md:text-xl font-bold text-gray-800">${section.category}</h2>
-                            ${section.subtitle ? `<p class="text-sm text-gray-500 font-medium mt-1">${section.subtitle}</p>` : ''}
+                            <h2 class="text-xl font-bold text-slate-800">${section.category}</h2>
+                            ${section.subtitle ? `<p class="text-sm text-slate-500 font-medium">${section.subtitle}</p>` : ''}
                         </div>
                     </div>
                 `;
 
                 // 句子列表
-                let sentencesHtml = `<div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">`;
+                let sentencesHtml = `<div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">`;
                 
                 section.sentences.forEach((item, iIndex) => {
-                    // 將資料存入全域陣列方便 "全部播放"
                     const globalIndex = sentencesToPlay.length;
-                    sentencesToPlay.push({ text: item.en, id: `card-${globalIndex}` });
+                    sentencesToPlay.push({ text: item.en, id: `card-${globalIndex}` }); 
+
+                    // 判斷是否有圖片
+                    const imgHtml = item.img ? `<div class="sticker-img mr-3 w-12 text-center transform group-hover:scale-110 transition">${item.img}</div>` : '';
 
                     sentencesHtml += `
                         <div id="card-${globalIndex}" 
                              onclick="speak('${item.en.replace(/'/g, "\\'")}', 'card-${globalIndex}')" 
-                             class="card-hover ${section.color} bg-white border border-gray-100 rounded-lg p-3 flex items-center justify-between cursor-pointer transition select-none group">
-                            <div class="flex-1 pr-2">
-                                <p class="en-text text-lg text-gray-800 font-semibold group-hover:text-blue-600 transition">${item.en}</p>
-                                <p class="text-sm text-gray-400 mt-1">${item.zh}</p>
+                             class="card-hover ${section.color} bg-white border border-slate-100 rounded-xl p-4 flex items-center justify-between cursor-pointer select-none group relative overflow-hidden">
+                            
+                            <div class="flex items-center flex-1">
+                                ${imgHtml}
+                                <div>
+                                    <p class="en-text text-xl text-slate-700 font-bold group-hover:text-cyan-600 transition tracking-wide">${item.en}</p>
+                                    <p class="text-sm text-slate-400 mt-1 font-medium">${item.zh}</p>
+                                </div>
                             </div>
-                            <div class="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-blue-100 text-gray-400 group-hover:text-blue-500 flex items-center justify-center transition shrink-0">
+                            
+                            <div class="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-cyan-50 text-slate-300 group-hover:text-cyan-500 flex items-center justify-center transition shrink-0 ml-2">
                                 <i class="fas fa-volume-up"></i>
                             </div>
                         </div>
@@ -253,94 +408,104 @@
             });
         }
 
-        // 2. 語音合成函數
-        function speak(text, elementId, onEndCallback) {
-            // 如果正在播放其他內容，先停止
+        // === 更新語速 ===
+        function updateSpeed() {
+            const select = document.getElementById('speed-select');
+            speechRate = parseFloat(select.value);
+            // 如果正在播放，停止並提示用戶重新點擊
             if (synth.speaking) {
-                synth.cancel();
+                stopAudio();
             }
+        }
 
-            // UI 更新：移除舊的高亮，新增新的高亮
+        // === 2. 模式切換邏輯 ===
+        function switchMode(mode) {
+            const practiceView = document.getElementById('view-practice');
+            const quizView = document.getElementById('view-quiz');
+            const tabPractice = document.getElementById('tab-practice');
+            const tabQuiz = document.getElementById('tab-quiz');
+            const scoreBoard = document.getElementById('score-board');
+
+            stopAudio();
+
+            if (mode === 'practice') {
+                isQuizMode = false;
+                practiceView.classList.remove('hidden');
+                quizView.classList.add('hidden');
+                
+                tabPractice.className = "tab-active flex-1 py-2 rounded-lg text-center transition cursor-default";
+                tabQuiz.className = "tab-inactive flex-1 py-2 rounded-lg text-center transition cursor-pointer";
+                scoreBoard.classList.add('hidden');
+            } else {
+                isQuizMode = true;
+                practiceView.classList.add('hidden');
+                quizView.classList.remove('hidden');
+
+                tabPractice.className = "tab-inactive flex-1 py-2 rounded-lg text-center transition cursor-pointer";
+                tabQuiz.className = "tab-active flex-1 py-2 rounded-lg text-center transition cursor-default";
+                scoreBoard.classList.remove('hidden');
+                
+                if(!currentQuizItem) startQuiz();
+            }
+        }
+
+        // === 3. 語音合成功能 ===
+        function speak(text, elementId, onEndCallback) {
+            if (synth.speaking) synth.cancel();
+
+            // UI 更新
             document.querySelectorAll('.playing-highlight').forEach(el => el.classList.remove('playing-highlight'));
-            if (elementId) {
+            if (elementId && !isQuizMode) {
                 const el = document.getElementById(elementId);
                 if (el) {
                     el.classList.add('playing-highlight');
-                    // 確保元素在視野內 (如果是自動播放模式)
-                    if (isPlayingAll) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
+                    if (isPlayingAll) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
 
             const utterance = new SpeechSynthesisUtterance(text);
             currentUtterance = utterance;
-            
-            // 設定語音參數 (針對兒童優化)
             utterance.lang = 'en-US';
-            utterance.rate = 0.8; // 語速稍微放慢
-            utterance.pitch = 1.1; // 語調稍微提高，較親切
-            
-            // 嘗試獲取高品質語音
+            utterance.rate = speechRate; // 使用當前設定的語速
+            utterance.pitch = 1.1;
+
             const voices = synth.getVoices();
-            const preferredVoice = voices.find(v => v.name.includes('Google US English')) || 
-                                   voices.find(v => v.lang === 'en-US');
+            const preferredVoice = voices.find(v => v.name.includes('Google US English')) || voices.find(v => v.lang === 'en-US');
             if (preferredVoice) utterance.voice = preferredVoice;
 
-            // 播放結束後的處理
             utterance.onend = () => {
-                if (elementId) {
+                if (elementId && !isQuizMode) {
                     const el = document.getElementById(elementId);
                     if (el) el.classList.remove('playing-highlight');
                 }
-                currentUtterance = null;
-                if (onEndCallback) onEndCallback();
-            };
-
-            utterance.onerror = (e) => {
-                console.error('Speech error:', e);
-                if (elementId) {
-                    const el = document.getElementById(elementId);
-                    if (el) el.classList.remove('playing-highlight');
-                }
-                currentUtterance = null;
-                // 即使出錯也嘗試繼續下一個 (如果是播放列表)
                 if (onEndCallback) onEndCallback();
             };
 
             synth.speak(utterance);
         }
 
-        // 3. 全部播放邏輯
+        // === 4. 播放控制 ===
         function playAll() {
-            if (isPlayingAll) return; // 避免重複點擊
-
+            if (isPlayingAll) return;
             isPlayingAll = true;
             updatePlayButtons();
             
             let index = 0;
-
             function playNext() {
-                if (!isPlayingAll) return; // 如果被停止了
-
+                if (!isPlayingAll) return;
                 if (index < sentencesToPlay.length) {
                     const item = sentencesToPlay[index];
                     speak(item.text, item.id, () => {
                         index++;
-                        // 句與句之間停頓 1 秒
-                        if (isPlayingAll) {
-                            setTimeout(playNext, 1000);
-                        }
+                        if (isPlayingAll) setTimeout(playNext, 1200); // 稍微增加間隔
                     });
                 } else {
-                    stopAudio(); // 播完了
+                    stopAudio();
                 }
             }
-
             playNext();
         }
 
-        // 4. 停止播放
         function stopAudio() {
             synth.cancel();
             isPlayingAll = false;
@@ -351,7 +516,6 @@
         function updatePlayButtons() {
             const playBtn = document.getElementById('playAllBtn');
             const stopBtn = document.getElementById('stopBtn');
-            
             if (isPlayingAll) {
                 playBtn.classList.add('hidden');
                 stopBtn.classList.remove('hidden');
@@ -361,7 +525,100 @@
             }
         }
 
-        // 解決 Chrome 語音列表加載延遲問題
+        // === 5. 測驗模式 ===
+        function startQuiz() {
+            nextQuizQuestion();
+        }
+
+        function nextQuizQuestion() {
+            const randomIndex = Math.floor(Math.random() * allSentencesFlat.length);
+            currentQuizItem = allSentencesFlat[randomIndex];
+            
+            let options = [currentQuizItem];
+            while (options.length < 3) {
+                const randomDistractor = allSentencesFlat[Math.floor(Math.random() * allSentencesFlat.length)];
+                if (!options.includes(randomDistractor) && randomDistractor.zh !== currentQuizItem.zh) {
+                    options.push(randomDistractor);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsContainer = document.getElementById('quiz-options');
+            const feedbackEl = document.getElementById('quiz-feedback');
+            
+            feedbackEl.innerHTML = "<i class='fas fa-headphones-alt mr-2'></i> 點喇叭聽題目，再選答案";
+            feedbackEl.className = "h-14 bg-white border-t border-slate-100 flex items-center justify-center text-sm font-bold text-slate-400";
+
+            let html = '';
+            options.forEach((opt, idx) => {
+                // 測驗選項也顯示圖片，增加聯想
+                const optImg = opt.img ? `<span class="text-2xl mr-2 filter drop-shadow-sm">${opt.img}</span>` : '';
+                html += `
+                    <div onclick="checkAnswer(this, '${opt.zh.replace(/'/g, "\\'")}')" 
+                         class="quiz-option bg-white border-2 border-slate-200 rounded-xl p-4 text-center text-slate-700 font-bold text-lg shadow-sm flex items-center justify-center h-20">
+                        ${optImg} ${opt.zh}
+                    </div>
+                `;
+            });
+            optionsContainer.innerHTML = html;
+
+            setTimeout(() => playQuizAudio(), 400);
+        }
+
+        function playQuizAudio() {
+            if (!currentQuizItem) return;
+            const icon = document.getElementById('quiz-speaker-icon');
+            icon.classList.add('text-cyan-400', 'scale-110');
+            setTimeout(() => icon.classList.remove('text-cyan-400', 'scale-110'), 200);
+            
+            speak(currentQuizItem.en, null, null);
+        }
+
+        function checkAnswer(el, selectedZh) {
+            if (document.querySelector('.quiz-option.correct') || document.querySelector('.quiz-option.wrong')) return;
+
+            const feedbackEl = document.getElementById('quiz-feedback');
+
+            if (selectedZh === currentQuizItem.zh) {
+                el.classList.add('correct');
+                el.innerHTML = `<i class="fas fa-check-circle text-2xl mr-2"></i> ${selectedZh}`;
+                
+                feedbackEl.innerHTML = "<span class='text-green-600 text-lg'><i class='fas fa-laugh-squint'></i> Correct! 答對了！</span>";
+                feedbackEl.className = "h-14 bg-green-50 border-t border-green-100 flex items-center justify-center font-bold animate-pulse";
+                
+                score += 10;
+                updateScore();
+                fireConfetti();
+                
+                setTimeout(nextQuizQuestion, 2000);
+            } else {
+                el.classList.add('wrong');
+                feedbackEl.innerHTML = "<span class='text-red-500 text-lg'><i class='fas fa-times-circle'></i> Oops! 再試一次 (Try again)</span>";
+                feedbackEl.className = "h-14 bg-red-50 border-t border-red-100 flex items-center justify-center font-bold";
+                
+                // 降低語速再唸一次
+                const originalRate = speechRate;
+                speechRate = 0.5; // 變慢
+                setTimeout(() => {
+                    playQuizAudio();
+                    speechRate = originalRate; // 恢復
+                }, 800);
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('current-score').innerText = score;
+        }
+
+        function fireConfetti() {
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.6 },
+                colors: ['#06b6d4', '#f59e0b', '#ef4444', '#10b981']
+            });
+        }
+
         window.speechSynthesis.onvoiceschanged = () => {
             window.speechSynthesis.getVoices();
         };
